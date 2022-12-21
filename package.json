@@ -1,14 +1,14 @@
 {
-	"name": "@utily/library-template",
+	"name": "upcheck-paxshop",
 	"version": "0.0.15",
-	"description": "Template library for Typescript.",
-	"author": "Utily Contributors",
+	"description": "Checks if paxshop is up and running. Notifies if something fails.",
+	"author": "Paxport AB",
 	"license": "MIT",
-	"repository": "https://github.com/utily/library-template",
+	"repository": "https://github.com/paxportse/upcheck-paxshop",
 	"bugs": {
-		"url": "https://github.com/utily/library-template/issues"
+		"url": "https://github.com/paxportse/upcheck-paxshop/issues"
 	},
-	"homepage": "https://github.com/utily",
+	"homepage": "https://github.com/paxportse",
 	"private": false,
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
