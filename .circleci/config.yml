@@ -1,0 +1,120 @@
+version: 2.1
+default: &default
+  working_directory: ~/repo
+  docker:
+    - image: circleci/node:16.18
+commands:
+  prepare:
+    description: "Prepare working directory"
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+  test-paxshop-api:
+    description: "Paxshop API Tests"
+    steps:
+      - prepare
+      - run: mkdir -p workspace
+      - run:
+          name: Run Paxshop API Tests
+          command: |
+            if npm run test &> workspace/output ; then
+              echo 'export TESTS_PASS=true' >> $BASH_ENV
+            else
+              echo 'export TESTS_PASS=false' >> $BASH_ENV
+            fi
+      - run:
+          name: Print output
+          command: cat workspace/output
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - output
+      - run:
+          name: Return exit code
+          command: |
+            if "$TESTS_PASS" == "true" ; then
+              exit 0
+            else
+              exit 1
+            fi
+jobs:
+  paxshop-api-quiet:
+    <<: *default
+    steps:
+      - test-paxshop-api
+      - attach_workspace:
+          at: workspace
+      - run:
+          name: Send SMS
+          command: |
+            curl -X POST https://api.46elks.com/a1/sms \
+              -u ${ELKS_API_USER}:${ELKS_API_PASSWORD} \
+              -d from=UpCheck \
+              -d to=${ELKS_TO} \
+              -d message="UpCheck failed: ok = `grep -o -i "\.ok" workspace/output | wc -l`, failed = `grep -o -i "\.failed" workspace/output | wc -l` ${CIRCLE_BUILD_URL}"
+          when: on_fail
+  paxshop-api-notify:
+    <<: *default
+    steps:
+      - test-paxshop-api
+      - attach_workspace:
+          at: workspace
+      - run:
+          name: Send Success SMS
+          command: |
+            curl -X POST https://api.46elks.com/a1/sms \
+              -u ${ELKS_API_USER}:${ELKS_API_PASSWORD} \
+              -d from=UpCheck \
+              -d to=${ELKS_TO} \
+              -d message="UpCheck daily test succeeded. ${CIRCLE_BUILD_URL}"
+      - run:
+          name: Send SMS
+          command: |
+            curl -X POST https://api.46elks.com/a1/sms \
+              -u ${ELKS_API_USER}:${ELKS_API_PASSWORD} \
+              -d from=UpCheck \
+              -d to=${ELKS_TO} \
+              -d message="UpCheck failed: ok = `grep -o -i "\.ok" workspace/output | wc -l`, failed = `grep -o -i "\.failed" workspace/output | wc -l` ${CIRCLE_BUILD_URL}"
+          when: on_fail
+workflows:
+  version: 2.1
+  paxshop:
+    triggers:
+      - schedule:
+          cron: "7,17,27,47,57 * * * *"
+          filters:
+            branches:
+              only: master
+      - schedule:
+          cron: "37 00-12 * * *"
+          filters:
+            branches:
+              only: master
+      - schedule:
+          cron: "37 14-23 * * *"
+          filters:
+            branches:
+              only: master
+    jobs:
+      - paxshop-api-quiet
+  daily:
+    triggers:
+      - schedule:
+          cron: "37 13 * * *"
+          filters:
+            branches:
+              only: master
+    jobs:
+      - paxshop-api-notify
+  build:
+    jobs:
+      - paxshop-api-notify
