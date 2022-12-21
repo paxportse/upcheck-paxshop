@@ -1,8 +1,8 @@
 version: 2.1
 default: &default
   working_directory: ~/repo
-  docker:
-    - image: circleci/node:16.18
+orbs:
+  node: circleci/node@5.0.2
 commands:
   prepare:
     description: "Prepare working directory"
@@ -48,6 +48,7 @@ commands:
             fi
 jobs:
   paxshop-api-quiet:
+    executor: node/default
     <<: *default
     steps:
       - test-paxshop-api
@@ -63,6 +64,7 @@ jobs:
               -d message="UpCheck failed: ok = `grep -o -i "\.ok" workspace/output | wc -l`, failed = `grep -o -i "\.failed" workspace/output | wc -l` ${CIRCLE_BUILD_URL}"
           when: on_fail
   paxshop-api-notify:
+    executor: node/default
     <<: *default
     steps:
       - test-paxshop-api
