@@ -1195,10 +1195,18 @@ Object {
         "flights": Array [
           Object {
             "capacity": 5,
+            "price": Object {
+              "amount": 150,
+              "currency": "SEK",
+            },
             "reference": "FL-001",
           },
           Object {
             "capacity": 5,
+            "price": Object {
+              "amount": 120,
+              "currency": "SEK",
+            },
             "reference": "FL-004",
           },
         ],
