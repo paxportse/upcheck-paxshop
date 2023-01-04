@@ -22,6 +22,7 @@ Object {
                   "amount": 200,
                   "currency": "SEK",
                 },
+                "reference": "CHANGE",
               },
               Object {
                 "description": "Enjoy some champagne with some chocolate.",
@@ -1233,6 +1234,7 @@ Object {
                   "amount": 200,
                   "currency": "SEK",
                 },
+                "reference": "CHANGE",
               },
               Object {
                 "description": "Enjoy some champagne with some chocolate.",
